@@ -41,4 +41,16 @@ public class RecipeService {
             throw new RuntimeException("Unexpected error: " + e.getMessage());
         }
     }
+
+    public void updateRecipeRating(Integer recipeId, double rating) {
+        String url = recipeServiceUrl + "/setRating/" + recipeId;
+        Map<String, Object> request = new HashMap<>();
+        request.put("rating", rating);
+        try {
+            restTemplate.put(url, request);
+            System.out.println("Recipe rating updated successfully in recipe-api.");
+        } catch (Exception e) {
+            System.out.println("Failed to update recipe rating in recipe-api: " + e.getMessage());
+        }
+    }
 }

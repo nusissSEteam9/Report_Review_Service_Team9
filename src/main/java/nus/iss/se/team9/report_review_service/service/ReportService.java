@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import java.util.Collections;
@@ -19,16 +18,24 @@ import java.util.Optional;
 @Service
 @Transactional
 public class ReportService {
+	private final AdminService adminService;
+	private final RecipeReportRepository recipeReportRepository;
+	private final MemberReportRepository memberReportRepository;
+	private final ReportRepository reportRepository;
+	private final String emailServiceUrl;
+
 	@Autowired
-	AdminService adminService;
-	@Autowired
-	RecipeReportRepository recipeReportRepository;
-	@Autowired
-	MemberReportRepository memberReportRepository;
-	@Autowired
-	ReportRepository reportRepository;
-	@Value("${email.service.url}")
-	private String emailServiceUrl;
+	public ReportService(AdminService adminService,
+						 RecipeReportRepository recipeReportRepository,
+						 MemberReportRepository memberReportRepository,
+						 ReportRepository reportRepository,
+						 @Value("${email.service.url}") String emailServiceUrl) {
+		this.adminService = adminService;
+		this.recipeReportRepository = recipeReportRepository;
+		this.memberReportRepository = memberReportRepository;
+		this.reportRepository = reportRepository;
+		this.emailServiceUrl = emailServiceUrl;
+	}
 
 	public List<MemberReport> findApprovedMemberReportsByMemberReported(Member member){
 		return memberReportRepository.findByMemberReportedAndStatus(member, Status.APPROVED);
@@ -174,6 +181,6 @@ public class ReportService {
 		headers.set("Content-Type", "application/json");
 		HttpEntity<EmailDetails> request = new HttpEntity<>(emailDetails, headers);
 		String url = emailServiceUrl + "/sendEmailOTP";
-		ResponseEntity<String> emailResponse = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+		restTemplate.exchange(url, HttpMethod.POST, request, String.class);
 	}
 }

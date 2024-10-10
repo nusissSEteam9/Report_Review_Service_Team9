@@ -2,7 +2,6 @@ package nus.iss.se.team9.report_review_service.service;
 
 import jakarta.transaction.Transactional;
 import nus.iss.se.team9.report_review_service.model.Member;
-import nus.iss.se.team9.report_review_service.repo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;

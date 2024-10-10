@@ -19,7 +19,7 @@ public class ReportController {
     private final JwtService jwtService;
 
     @Autowired
-    public ReportController(ReportService reportService, RecipeService recipeService, UserService userService, JwtService jwtService, AdminService adminService) {
+    public ReportController(ReportService reportService, RecipeService recipeService, UserService userService, JwtService jwtService) {
         this.reportService = reportService;
         this.recipeService = recipeService;
         this.userService = userService;
