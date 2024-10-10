@@ -27,14 +27,5 @@ public class ReviewService {
 		double roundedMeanRating = Math.round(meanRating * 10.0) / 10.0;
 		recipe.setRating(roundedMeanRating);
 		recipeRepository.save(recipe);
-		return;
-	}
-	
-	public void saveReview(Review review) {
-		reviewRepository.save(review);
-	}
-	
-	public List<Review> getReviewsByRecipe(Recipe recipe){
-		return recipeRepository.getReviewsByRecipe(recipe);
 	}
 }

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/report")
@@ -18,28 +19,134 @@ public class ReportController {
     private final JwtService jwtService;
 
     @Autowired
-    public ReportController(ReportService reportService, RecipeService recipeService, UserService userService, JwtService jwtService) {
+    public ReportController(ReportService reportService, RecipeService recipeService, UserService userService, JwtService jwtService, AdminService adminService) {
         this.reportService = reportService;
         this.recipeService = recipeService;
         this.userService = userService;
         this.jwtService = jwtService;
     }
 
-    @PostMapping("/searchByMember")
-    public ResponseEntity<List<MemberReport>> getReportsByMember(@RequestBody Member member) {
+    @PostMapping("/getMemberReportsByMemberReported")
+    public ResponseEntity<List<MemberReport>> getMemberReportsByMemberReported(@RequestBody Member member) {
         try {
-            List<MemberReport> reports =reportService.findApprovedByMember(member);
+            List<MemberReport> reports =reportService.findApprovedMemberReportsByMemberReported(member);
             if (reports.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
             return ResponseEntity.ok(reports);
         } catch (Exception e) {
-
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-    // Report recipes
+    @GetMapping("/getAllRecipeReports")
+    public ResponseEntity<List<RecipeReport>> getAllRecipeReports(){
+        try {
+            List<RecipeReport> reports =reportService.findAllPendingRecipeReports();
+            if (reports.isEmpty()) {
+                System.out.println("No recipe reports are pending for approval!");
+                return ResponseEntity.noContent().build();
+            }
+            System.out.println("recipe reports pending for approval are found and displayed!");
+            return ResponseEntity.ok(reports);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/getAllMemberReports")
+    public ResponseEntity<List<MemberReport>> getAllMemberReports(){
+        try {
+            List<MemberReport> reports =reportService.findAllPendingMemberReports();
+            if (reports.isEmpty()) {
+                System.out.println("No member reports are pending for approval!");
+                return ResponseEntity.noContent().build();
+            }
+            System.out.println("member reports pending for approval are found and displayed!");
+            return ResponseEntity.ok(reports);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/getRecipeReportById")
+    public ResponseEntity<RecipeReport> getRecipeReportById(@RequestParam("id") Integer id) {
+        try {
+            Optional<RecipeReport> report = reportService.getRecipeReportById(id);
+            return report.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/getMemberReportById")
+    public ResponseEntity<MemberReport> getMemberReportById(@RequestParam("id") Integer id) {
+        try {
+            Optional<MemberReport> report = reportService.getMemberReportById(id);
+            return report.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PostMapping("/approveRecipeReportById")
+    public ResponseEntity<RecipeReport> approveRecipeReportById(@RequestParam("id") Integer id) {
+        try {
+            Optional<RecipeReport> approvedReport = reportService.approveRecipeReportById(id);
+            return approvedReport.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PostMapping(" /rejectRecipeReportById")
+    public ResponseEntity<RecipeReport> rejectRecipeReportById(@RequestParam("id") Integer id) {
+        try {
+            Optional<RecipeReport> approvedReport = reportService.rejectRecipeReportById(id);
+            return approvedReport.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PostMapping("/approveMemberReportById")
+    public ResponseEntity<MemberReport> approveMemberReportById(@RequestParam("id") Integer id) {
+        try {
+            Optional<MemberReport> approvedReport = reportService.approveMemberReportById(id);
+            return approvedReport.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PostMapping(" /rejectMemberReportById")
+    public ResponseEntity<MemberReport> rejectMemberReportById(@RequestParam("id") Integer id) {
+        try {
+            Optional<MemberReport> approvedReport = reportService.rejectMemberReportById(id);
+            return approvedReport.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PostMapping("/reportRecipe")
+    public ResponseEntity<String> reportRecipe(@RequestBody RecipeReport report) {
+        reportService.reportRecipe(report);
+        return ResponseEntity.ok("Recipe reported successfully");
+    }
+
+    @PostMapping("/reportMember")
+    public ResponseEntity<String> reportMember(@RequestBody MemberReport report) {
+        reportService.reportMember(report);
+        return ResponseEntity.ok("Member reported successfully");
+    }
+
     @GetMapping("/reportRecipe/{recipeId}")
     public ResponseEntity<RecipeReport> getReportRecipe(@PathVariable(value = "recipeId") Integer recipeId,@RequestHeader("Authorization") String token) {
         RecipeReport report = new RecipeReport();
@@ -48,12 +155,6 @@ public class ReportController {
         report.setMember(member);
         report.setRecipeReported(recipe);
         return ResponseEntity.ok(report);
-    }
-
-    @PostMapping("/reportRecipe")
-    public ResponseEntity<String> reportRecipe(@RequestBody RecipeReport report) {
-        reportService.reportRecipes(report);
-        return ResponseEntity.ok("Recipe reported successfully");
     }
 
     // Report members
@@ -67,9 +168,5 @@ public class ReportController {
         return ResponseEntity.ok(report);
     }
 
-    @PostMapping("/reportMember")
-    public ResponseEntity<String> reportMember(@RequestBody MemberReport report) {
-        reportService.reportMembers(report);
-        return ResponseEntity.ok("Member reported successfully");
-    }
+
 }
