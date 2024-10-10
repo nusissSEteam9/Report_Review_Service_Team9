@@ -1,32 +1,28 @@
 package nus.iss.se.team9.report_review_service.controller;
 
-import jakarta.servlet.http.HttpSession;
 import nus.iss.se.team9.report_review_service.model.*;
 import nus.iss.se.team9.report_review_service.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/review")
 public class ReviewController {
-
     private final ReviewService reviewService;
+    private final UserService userService;
+    private final JwtService jwtService;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    public ReviewController(ReviewService reviewService) {
+    public ReviewController(ReviewService reviewService, UserService userService, JwtService jwtService) {
         this.reviewService = reviewService;
+        this.userService = userService;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createReview(@RequestBody Review review, HttpSession sessionObj) {
-        Member member = userService.getMemberById((int) sessionObj.getAttribute("userId"));
+    public ResponseEntity<String> createReview(@RequestBody Review review,@RequestHeader("Authorization") String token) {
+        Member member = userService.getMemberById(jwtService.extractId(token));
         review.setMember(member);
         reviewService.createReview(review);
         return ResponseEntity.ok("Review created successfully for recipe ID: " + review.getRecipe().getId());

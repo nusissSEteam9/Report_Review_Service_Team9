@@ -29,6 +29,10 @@ public class ReportService {
 	@Value("${email.service.url}")
 	private String emailServiceUrl;
 
+	public List<MemberReport> findApprovedByMember(Member member){
+		return memberReportRepository.findByMemberReportedAndStatus(member, Status.APPROVED);
+	}
+
 	// report inappropriate recipes
 	public void reportRecipes(RecipeReport report) {
 		report.setStatus(Status.PENDING);
