@@ -23,18 +23,22 @@ public class ReportService {
 	private final MemberReportRepository memberReportRepository;
 	private final ReportRepository reportRepository;
 	private final String emailServiceUrl;
+	private final UserService userService;
+	private final RecipeService recipeService;
 
 	@Autowired
 	public ReportService(AdminService adminService,
 						 RecipeReportRepository recipeReportRepository,
 						 MemberReportRepository memberReportRepository,
 						 ReportRepository reportRepository,
-						 @Value("${email.service.url}") String emailServiceUrl) {
+						 @Value("${email.service.url}") String emailServiceUrl, UserService userService, RecipeService recipeService) {
 		this.adminService = adminService;
 		this.recipeReportRepository = recipeReportRepository;
 		this.memberReportRepository = memberReportRepository;
 		this.reportRepository = reportRepository;
 		this.emailServiceUrl = emailServiceUrl;
+		this.userService = userService;
+		this.recipeService = recipeService;
 	}
 
 	public List<MemberReport> findApprovedMemberReportsByMemberReported(Member member){
@@ -107,20 +111,38 @@ public class ReportService {
 		}
 	}
 
-	public void reportRecipe(RecipeReport report) {
+	public void reportRecipe(Integer recipeReportedId,Integer memberId,String reason) {
+		Recipe recipeReported = recipeService.getRecipeById(recipeReportedId);
+		if (recipeReported == null) {
+			throw new RuntimeException("Recipe not found with id: " + recipeReportedId);
+		}
+		Member member = userService.getMemberById(memberId);
+		if (member == null){
+			throw new RuntimeException("Member not found with id: " + memberId);
+		}
+
+		Member recipeOwner = userService.getMemberById(recipeService.getMemberByRecipeId(recipeReportedId));
+		System.out.println("Member found, member: " + member);
+		System.out.println("Recipe found, recipe: "+ recipeReported);
+		System.out.println("Recipe owner :" +recipeOwner);
+
+		RecipeReport report = new RecipeReport();
+		report.setRecipeReported(recipeReported);
+		report.setMember(member);
 		report.setStatus(Status.PENDING);
-		report.setReason(report.getReason().trim());
+		report.setReason(reason.trim());
 		recipeReportRepository.save(report);
 
 		//send email to member who created the recipe
-		if(report.getRecipeReported().getMember().getEmail()!=null) {
+		if(recipeOwner.getEmail()!=null) {
 			EmailDetails emailDetailsToMember = new EmailDetails();
-			emailDetailsToMember.setTo(report.getRecipeReported().getMember().getEmail());
+			emailDetailsToMember.setTo(recipeOwner.getEmail());
 			emailDetailsToMember.setSubject("Your Recipe has been reported！");
-			emailDetailsToMember.setBody("Dear member " + report.getMember().getUsername() + ",\n" + "Your recipe has been reported!\n"
+			emailDetailsToMember.setBody("Dear member " + recipeOwner.getUsername() + ",\n" + "Your recipe has been reported!\n"
 					+ "Reason:\"" + report.getReason() + "\",\n" + "Please login to check!");
 			sendEmail(emailDetailsToMember);
 		}
+
 		try {
 			List<Admin> admins = adminService.getAllAdmin();
 
@@ -135,20 +157,33 @@ public class ReportService {
 						+ ",\n" + "Please login to check!");
 				sendEmail(emailDetailsToAdmin);
 			}
-		}catch (RuntimeException e) {
+		}catch (Exception e) {
 			System.out.println("Error occurred while fetching admin list and sending email: " + e.getMessage());
 		}
 	}
 
-	public void reportMember(MemberReport report) {
+	public void reportMember(Integer memberReportedId, Integer memberId,String reason) {
+
+		Member memberReported = userService.getMemberById(memberReportedId);
+		if (memberReported == null){
+			throw new RuntimeException("Member reported not found with id: " + memberId);
+		}
+		Member member = userService.getMemberById(memberId);
+		if (member == null){
+			throw new RuntimeException("Member not found with id: " + memberId);
+		}
+
+		MemberReport report = new MemberReport();
+		report.setMemberReported(memberReported);
+		report.setMember(member);
 		report.setStatus(Status.PENDING);
-		report.setReason(report.getReason().trim());
+		report.setReason(reason.trim());
 		memberReportRepository.save(report);
 
 		// send email to member who is reported
-		if(report.getMemberReported().getEmail()!=null) {
+		if(memberReported.getEmail()!=null) {
 			EmailDetails emailDetailsToMember = new EmailDetails();
-			emailDetailsToMember.setTo(report.getMemberReported().getEmail());
+			emailDetailsToMember.setTo(memberReported.getEmail());
 			emailDetailsToMember.setSubject("You've been reported! please login to check!");
 			emailDetailsToMember.setBody("Dear member " + report.getMemberReported().getUsername() + ",\n"
 					+ "You have been reported!\n" + "Reason:\"" + report.getReason() + "\",\n"
@@ -165,7 +200,7 @@ public class ReportService {
 				emailDetailsToAdmin.setTo(admin.getEmail());
 				emailDetailsToAdmin.setSubject("One new report is created!");
 				emailDetailsToAdmin.setBody("Dear admin, There is a new member report created by member \""
-						+ report.getMember().getUsername() + "\",\n"
+						+ member.getUsername() + "\",\n"
 						+ "The number of reports pending for approval : " + reportRepository.countByStatus(Status.PENDING)
 						+ ",\n" + "Please login to check!");
 				sendEmail(emailDetailsToAdmin);

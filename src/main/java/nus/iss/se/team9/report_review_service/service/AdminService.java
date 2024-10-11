@@ -25,7 +25,8 @@ public class AdminService {
     }
 
     public List<Admin> getAllAdmin(){
-        String url = adminServiceUrl + "/getAllAdmin";
+        System.out.println("Go to admin-api");
+        String url = adminServiceUrl + "/getAdminList";
         ResponseEntity<List<Admin>> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,

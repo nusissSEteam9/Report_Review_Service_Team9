@@ -1,6 +1,7 @@
 package nus.iss.se.team9.report_review_service.service;
 
 import jakarta.transaction.Transactional;
+import nus.iss.se.team9.report_review_service.model.Member;
 import nus.iss.se.team9.report_review_service.model.Recipe;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -17,7 +18,7 @@ public class RecipeService {
     private final String recipeServiceUrl;
     private final RestTemplate restTemplate;
 
-    public RecipeService(RestTemplate restTemplate, @Value("recipe.service.url") String recipeServiceUrl) {
+    public RecipeService(RestTemplate restTemplate, @Value("${recipe.service.url}") String recipeServiceUrl) {
         this.recipeServiceUrl =recipeServiceUrl;
         this.restTemplate =restTemplate;
     }
@@ -41,6 +42,24 @@ public class RecipeService {
             throw new RuntimeException("Unexpected error: " + e.getMessage());
         }
     }
+
+    public Integer getMemberByRecipeId(Integer recipeId) {
+        String url = recipeServiceUrl + "/getRecipeOwnerMemberId/" + recipeId;
+
+        try {
+            ResponseEntity<Integer> response = restTemplate.getForEntity(url, Integer.class);
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                return response.getBody();  // 返回 memberId
+            } else {
+                throw new RuntimeException("Member ID not found for recipe id: " + recipeId);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error while fetching member ID: " + e.getMessage(), e);
+        }
+    }
+
+
 
     public void updateRecipeRating(Integer recipeId, double rating) {
         String url = recipeServiceUrl + "/setRating/" + recipeId;
