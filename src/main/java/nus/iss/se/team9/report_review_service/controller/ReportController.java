@@ -81,9 +81,6 @@ public class ReportController {
         }
     }
 
-
-
-
     @GetMapping("/getRecipeReportById")
     public ResponseEntity<RecipeReport> getRecipeReportById(@RequestParam("id") Integer id) {
         try {
@@ -117,7 +114,7 @@ public class ReportController {
         }
     }
 
-    @PostMapping(" /rejectRecipeReportById")
+    @PostMapping("/rejectRecipeReportById")
     public ResponseEntity<RecipeReport> rejectRecipeReportById(@RequestParam("id") Integer id) {
         try {
             Optional<RecipeReport> approvedReport = reportService.rejectRecipeReportById(id);
@@ -139,7 +136,7 @@ public class ReportController {
         }
     }
 
-    @PostMapping(" /rejectMemberReportById")
+    @PostMapping("/rejectMemberReportById")
     public ResponseEntity<MemberReport> rejectMemberReportById(@RequestParam("id") Integer id) {
         try {
             Optional<MemberReport> approvedReport = reportService.rejectMemberReportById(id);
