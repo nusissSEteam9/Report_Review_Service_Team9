@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -27,9 +28,20 @@ public class ReportController {
     }
 
     @PostMapping("/getMemberReportsByMemberReported")
-    public ResponseEntity<List<MemberReport>> getMemberReportsByMemberReported(@RequestBody Member member) {
+    public ResponseEntity<List<MemberReport>> getMemberReportsByMemberReported(@RequestBody Map<String, Integer> requestBody) {
+        System.out.println("get member reports by id of member reported");
         try {
-            List<MemberReport> reports =reportService.findApprovedMemberReportsByMemberReported(member);
+            Integer memberId = requestBody.get("memberId");
+            if (memberId == null) {
+                return ResponseEntity.badRequest().body(null);
+            }
+            Member member = userService.getMemberById(memberId);
+            if (member == null) {
+                System.out.println("Member not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            System.out.println("Member found");
+            List<MemberReport> reports = reportService.findApprovedMemberReportsByMemberReported(member);
             if (reports.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
