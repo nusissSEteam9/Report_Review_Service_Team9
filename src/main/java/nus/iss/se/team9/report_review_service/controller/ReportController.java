@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,6 +26,11 @@ public class ReportController {
         this.reportService = reportService;
         this.userService = userService;
         this.jwtService = jwtService;
+    }
+
+    @GetMapping("/health")
+    public String checkHealth(){
+        return "API is connected";
     }
 
     @PostMapping("/getMemberReportsByMemberReported")
@@ -84,8 +90,12 @@ public class ReportController {
     @GetMapping("/getRecipeReportById")
     public ResponseEntity<RecipeReport> getRecipeReportById(@RequestParam("id") Integer id) {
         try {
-            Optional<RecipeReport> report = reportService.getRecipeReportById(id);
-            return report.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+            RecipeReport report = reportService.getRecipeReportById(id);
+            if (report != null) {
+                return ResponseEntity.ok(report);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -173,6 +183,24 @@ public class ReportController {
             return ResponseEntity.ok("Member reported successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error reporting member: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/getRecipeIdByRecipeReportId")
+    public ResponseEntity<Map<String, Integer>> getRecipeIdByRecipeReportId(@RequestParam("id") Integer reportId) {
+        try {
+            RecipeReport recipeReport = reportService.getRecipeReportById(reportId);
+            if (recipeReport != null && recipeReport.getRecipeReported() != null) {
+                Integer recipeId = recipeReport.getRecipeReported().getId();
+                Map<String, Integer> response = new HashMap<>();
+                response.put("recipeReportedId", recipeId);
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

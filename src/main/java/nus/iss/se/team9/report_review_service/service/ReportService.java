@@ -55,8 +55,8 @@ public class ReportService {
 		return reports != null ? reports : Collections.emptyList();
 	}
 
-	public Optional<RecipeReport> getRecipeReportById(Integer recipeReportId){
-		return recipeReportRepository.findById(recipeReportId);
+	public RecipeReport getRecipeReportById(Integer id) {
+		return recipeReportRepository.findById(id).orElse(null);
 	}
 
 	public Optional<MemberReport> getMemberReportById(Integer memberReportId){
