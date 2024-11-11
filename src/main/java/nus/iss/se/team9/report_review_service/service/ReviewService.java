@@ -17,8 +17,10 @@ public class ReviewService {
 	}
 	public void createReview(Review review) {
 		reviewRepository.save(review);
+	}
+	
+	public void updateRecipeRating(Review review) {
 		Recipe recipe = review.getRecipe();
-		recipe.setNumberOfRating(recipe.getNumberOfRating() + 1);
 		double meanRating = reviewRepository.getMeanRating(recipe.getId());
 		double roundedMeanRating = Math.round(meanRating * 10.0) / 10.0;
 		recipeService.updateRecipeRating(recipe.getId(), roundedMeanRating);
