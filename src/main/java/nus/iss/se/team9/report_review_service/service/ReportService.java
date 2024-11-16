@@ -1,6 +1,7 @@
 package nus.iss.se.team9.report_review_service.service;
 
 import jakarta.transaction.Transactional;
+import nus.iss.se.team9.report_review_service.factory.ReportFactory;
 import nus.iss.se.team9.report_review_service.model.*;
 import nus.iss.se.team9.report_review_service.repo.*;
 import nus.iss.se.team9.report_review_service.reportObserver.ReportEvent;
@@ -144,15 +145,7 @@ public class ReportService {
 				throw new RuntimeException("Member not found with id: " + memberId);
 			}
 
-			System.out.println("Member found, member: " + member);
-			System.out.println("Recipe found, recipe: " + recipeReported);
-
-			RecipeReport report = new RecipeReport();
-			report.setRecipeReported(recipeReported);
-			report.setMember(member);
-			report.setStatus(Status.PENDING);
-			report.setReason(reason.trim());
-
+			RecipeReport report = (RecipeReport) ReportFactory.createReport(ReportType.RECIPE, recipeReported, member, reason);
 			recipeReportRepository.save(report);
 
 			notifyObservers(report, "CREATED");
@@ -163,7 +156,7 @@ public class ReportService {
 			throw new RuntimeException("Error occurred while reporting recipe: " + e.getMessage());
 		}
 	}
-	
+
 	public int reportMember(Integer memberReportedId, Integer memberId, String reason) {
 		try {
 			Member memberReported = userService.getMemberById(memberReportedId);
@@ -174,13 +167,10 @@ public class ReportService {
 			if (member == null) {
 				throw new RuntimeException("Member not found with id: " + memberId);
 			}
-			
-			MemberReport report = new MemberReport();
-			report.setMemberReported(memberReported);
-			report.setMember(member);
-			report.setStatus(Status.PENDING);
-			report.setReason(reason.trim());
+
+			MemberReport report = (MemberReport) ReportFactory.createReport(ReportType.MEMBER, memberReported, member, reason);
 			memberReportRepository.save(report);
+
 			notifyObservers(report, "CREATED");
 
 			return report.getId();
