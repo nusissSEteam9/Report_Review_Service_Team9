@@ -1,32 +1,22 @@
 package nus.iss.se.team9.report_review_service.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class EmailDetails {
+    // Getters and Setters
     private String to;
     private String subject;
     private String body;
 
-    // Getters and Setters
-    public String getTo() {
-        return to;
+    public EmailDetails(){
+    }
+    public EmailDetails(String to,String subject,String body){
+        this.body=body;
+        this.to=to;
+        this.subject=subject;
     }
 
-    public void setTo(String to) {
-        this.to = to;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
-    }
 }

@@ -193,7 +193,6 @@ public class ReportController {
 		try {
 			int reportId = reportService.reportRecipe(request.getRecipeReportedId(), jwtService.extractId(token),
 													  request.getReason());
-			reportService.sendEmailsForRecipe(request.getRecipeReportedId(), reportId);
 			return ResponseEntity.ok("Recipe reported successfully");
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -210,7 +209,6 @@ public class ReportController {
 		try {
 			Integer reporterId = jwtService.extractId(token);
 			int reportId = reportService.reportMember(request.getMemberReportedId(), reporterId, request.getReason());
-			reportService.sendEmailsForMember(request.getMemberReportedId(), reportId);
 			return ResponseEntity.ok("Member reported successfully");
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
