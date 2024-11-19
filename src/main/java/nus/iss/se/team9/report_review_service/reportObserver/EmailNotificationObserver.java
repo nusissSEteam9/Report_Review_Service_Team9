@@ -6,11 +6,11 @@ import nus.iss.se.team9.report_review_service.service.EmailService;
 
 import java.util.List;
 
-public class EmailNotificationService implements ReportObserver {
+public class EmailNotificationObserver implements ReportObserver {
     private final EmailService emailService;
     private final AdminService adminService;
 
-    public EmailNotificationService(EmailService emailService, AdminService adminService) {
+    public EmailNotificationObserver(EmailService emailService, AdminService adminService) {
         this.emailService = emailService;
         this.adminService = adminService;
     }
